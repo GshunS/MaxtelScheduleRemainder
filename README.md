@@ -1,6 +1,6 @@
 # MaxtelScheduleRemainder
 
-**MaxtelScheduleRemainder** is a Python script that automates the process of retrieving Maxtel shifts, calculating total work hours, estimating pay, and sending email notifications. It's designed to save you time and effort by eliminating manual calculations.
+**MaxtelScheduleRemainder** is a Python script that automates the process of retrieving the newest Maxtel shifts, calculating total work hours, estimating pay, and sending email notifications. It's designed to save you time and effort by eliminating manual calculations.
 
 ## Features
 
