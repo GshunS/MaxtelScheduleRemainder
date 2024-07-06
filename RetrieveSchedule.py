@@ -6,15 +6,26 @@ import requests
 from dotenv import load_dotenv
 
 from CalculateTax import calculateTax
+from SendEmail import EmailSender
 
 
 class schedule(object):
     def __init__(self, username, password, start_date, selected_date):
+        self.es = EmailSender(os.getenv('MY_USERNAME'), os.getenv('MY_maxtelGmailPassword'))
         self.username = username
         self.password = password
         self.WeekStartDate = start_date
         self.SelectedDate = selected_date
         self.hourly_rate = 23.25
+        self.weekday_dict = {
+            0: 'Mon',
+            1: 'Tue',
+            2: 'Wed',
+            3: 'Thu',
+            4: 'Fri',
+            5: 'Sat',
+            6: 'Sun'
+        }
         self.headers = {
             'sec-ch-ua': '"Not/A)Brand";v="8", "Chromium";v="126", "Google Chrome";v="126"',
             'DNT': '1',
@@ -62,11 +73,17 @@ class schedule(object):
 
     def dataProcessing(self, data):
         schedules = data['data']['Out_LightShifts']['List']
-        end_date = datetime.datetime.strptime(self.WeekStartDate, "%Y-%m-%d") + datetime.timedelta(days=7)
+        start_date = datetime.datetime.strptime(self.WeekStartDate, "%Y-%m-%d")
+        end_date = start_date + datetime.timedelta(days=6)
         if len(schedules) == 0:
-            return f'No Shifts from {self.WeekStartDate} to {end_date}'
+            message = f'No Shifts ' \
+                      f'from ({self.weekday_dict[start_date.weekday()]}) {start_date} ' \
+                      f'to ({self.weekday_dict[end_date.weekday()]}) {end_date}'
+            return message, False
         else:
-            message = f'Your Shifts from {self.WeekStartDate} to {end_date} are \n'
+            message = f'Your Shifts ' \
+                      f'from ({self.weekday_dict[start_date.weekday()]}) {start_date} ' \
+                      f'to ({self.weekday_dict[end_date.weekday()]}) {end_date} are \n'
             total_hours = 0
             for shift in schedules:
                 start_time = datetime.datetime.strptime(
@@ -74,7 +91,9 @@ class schedule(object):
                 end_time = datetime.datetime.strptime(
                     shift['LightShift']['EndDateTime'], '%Y-%m-%dT%H:%M:%SZ') + datetime.timedelta(hours=12)
                 duration = (end_time - start_time).total_seconds() / 60 / 60
-                message += f'{start_time} - {end_time} - {round(duration, 2)} hours\n'
+                message += f'({self.weekday_dict[start_time.weekday()]}) {start_time} - ' \
+                           f'({self.weekday_dict[end_time.weekday()]}) {end_time} - ' \
+                           f'{round(duration, 2)} hours\n'
                 total_hours += duration
             total_paid_hours = total_hours - len(schedules) * 0.5
             message += f'\nTotal Working Hours is {round(total_hours, 2)}\n'
@@ -84,26 +103,27 @@ class schedule(object):
         total_paid = calTax.calculate()
 
         message += f'\nEstimated Total Paid is {round(total_paid, 2)}\n'
-        return message
+        return message, True
 
     def start(self):
         # login_session = self.getSession()
         data = self.getSchedule()
-        return self.dataProcessing(data)
-
+        result = self.dataProcessing(data)
+        if result[1]:
+            write_f = open('shifts.txt', 'a')
+            write_f.writelines('\n' + self.WeekStartDate)
+            write_f.close()
+            self.es.send(result[0])
 
 if __name__ == '__main__':
     load_dotenv()
-    # user_name = os.getenv('MY_USERNAME')
-    # pwd = os.getenv('MY_PASSWORD')
 
-    today = datetime.datetime.today()
-    days_until_monday = (7 - today.weekday()) % 7
-    if days_until_monday == 0:
-        days_until_monday = 7
-    next_monday = today + datetime.timedelta(days=days_until_monday + (-7))
+    f = open('./shifts.txt', 'r')
+    WeekStartDate = [line.strip() for line in f.readlines()][-1]
+    f.close()
 
-    WeekStartDate = next_monday.strftime('%Y-%m-%d')
-    SelectedDate = '2024-07-15'
+    WeekStartDate = datetime.datetime.strptime(WeekStartDate, "%Y-%m-%d") + datetime.timedelta(days=0)
+    WeekStartDate = datetime.datetime.strftime(WeekStartDate, "%Y-%m-%d")
+    SelectedDate = WeekStartDate
     rs = schedule('', '', WeekStartDate, SelectedDate)
-    print(rs.start())
+    rs.start()
