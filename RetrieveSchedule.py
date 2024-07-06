@@ -122,7 +122,7 @@ if __name__ == '__main__':
     WeekStartDate = [line.strip() for line in f.readlines()][-1]
     f.close()
 
-    WeekStartDate = datetime.datetime.strptime(WeekStartDate, "%Y-%m-%d") + datetime.timedelta(days=0)
+    WeekStartDate = datetime.datetime.strptime(WeekStartDate, "%Y-%m-%d") + datetime.timedelta(days=7)
     WeekStartDate = datetime.datetime.strftime(WeekStartDate, "%Y-%m-%d")
     SelectedDate = WeekStartDate
     rs = schedule('', '', WeekStartDate, SelectedDate)
