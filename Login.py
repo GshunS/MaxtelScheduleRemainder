@@ -18,13 +18,13 @@ class Login(object):
             'Content-Type': 'application/json; charset=UTF-8',
             'Accept': 'application/json',
             'Referer': 'https://mcd.maxtel.com/EmployeeMobile/',
-            'X-CSRFToken': 'T6C+9iB49TLra4jEsMeSckDMNhQ=',
+            'X-CSRFToken': os.getenv('MY_X-CSRFToken'),
             'sec-ch-ua-platform': '"Windows"',
         }
         self.json_data = {
             'versionInfo': {
-                'moduleVersion': 'n+TH6jhnfk3ySmRPpNZpkA',
-                'apiVersion': 'sZNROa+qSY8hbI85ED9JrA',
+                'moduleVersion': os.getenv('MY_moduleVersion'),
+                'apiVersion': os.getenv('MY_apiVersion'),
             },
             'viewName': 'Common.Login',
             'inputParameters': {
@@ -38,7 +38,7 @@ class Login(object):
         response = self.session.post(
             'https://mcd.maxtel.com/EmployeeMobile/screenservices/Access_MCW_v2/Blocks/LoginFeature/ActionDoLogin',
             headers=self.headers,
-            json=self.json_data
+            json=self.json_data,
         )
         # print(response.json()['exception']['message'])
         print(response.json())

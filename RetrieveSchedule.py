@@ -34,14 +34,14 @@ class schedule(object):
             'Content-Type': 'application/json; charset=UTF-8',
             'Accept': 'application/json',
             'Referer': 'https://mcd.maxtel.com/EmployeeMobile/Home',
-            'X-CSRFToken': '2LnCJlyRNdvWB8amr3PA3QGk3I4=',
+            'X-CSRFToken': os.getenv('MY_X-CSRFToken'),
             'sec-ch-ua-platform': '"Windows"',
         }
 
         self.json_data = {
             'versionInfo': {
-                'moduleVersion': 'n+TH6jhnfk3ySmRPpNZpkA',
-                'apiVersion': 'K2dH5PywXIDQ3mbXe1Jl_g',
+                'moduleVersion': os.getenv('MY_moduleVersion'),
+                'apiVersion': os.getenv('MY_apiVersion'),
             },
             'viewName': 'MainFlow.Home',
             'screenData': {
